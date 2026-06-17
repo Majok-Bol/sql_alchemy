@@ -1,12 +1,13 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
+from flask_migrate import Migrate
 import os
 load_dotenv()
 app=Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI']=os.getenv("DATABASE_URL")
 db=SQLAlchemy(app)
-
+migrate=Migrate(app,db)
 
 #one-to-many relationship
 #one user can have many posts
@@ -68,6 +69,28 @@ class Passport(db.Model):
     owner=db.relationship("Person",back_populates="passport")
     def __repr__(self):
         return f"<Passport id={self.id},number={self.number},person_id={self.person_id},owner={self.owner.name if self.owner else None}>"
+
+
+#many-to-many relationships
+#many things connect to many things
+#the middleman table
+pizza_topping=db.Table("pizza_topping",
+db.Column("pizza_id",db.Integer,
+db.ForeignKey("pizza.id")),
+db.Column("topping_id",db.Integer,db.ForeignKey("topping.id")))
+class Pizza(db.Model):
+    id=db.Column(db.Integer,primary_key=True)
+    name=db.Column(db.String(30))
+    price=db.Column(db.Float)
+    toppings=db.relationship("Topping",secondary=pizza_topping,back_populates="pizzas")
+
+class Topping(db.Model):
+    id=db.Column(db.Integer,primary_key=True)
+    name=db.Column(db.String(50))
+    is_vegetarian=db.Column(db.Boolean)#false
+    pizzas=db.relationship("Pizza",secondary=pizza_topping,back_populates="toppings")
+
+
 @app.shell_context_processor
 def make_shell_contect():
     return {
@@ -77,5 +100,8 @@ def make_shell_contect():
         "Character":Character,
         "Weapon":Weapon,
         "Person":Person,
-        "Passport":Passport
+        "Passport":Passport,
+        "Pizza":Pizza,
+        "Topping":Topping,
+        "pizza_topping":pizza_topping
     }
