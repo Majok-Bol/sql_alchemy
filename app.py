@@ -90,7 +90,28 @@ class Topping(db.Model):
     is_vegetarian=db.Column(db.Boolean)#false
     pizzas=db.relationship("Pizza",secondary=pizza_topping,back_populates="toppings")
 
+#other example of many to many relationship
+actor_movie=db.Table(
+    "actor_movie",
+    db.Column("actor_id",db.Integer,
+    db.ForeignKey("actors.id")),
+    db.Column("movie_id",db.Integer,db.ForeignKey("movies.id"))
 
+)
+class Actors(db.Model):
+    __tablename__="actors"
+    id=db.Column(db.Integer,primary_key=True)
+    name=db.Column(db.String(50))
+    movies=db.relationship("Movies",secondary=actor_movie,back_populates="actors")
+    def __repr__(self):
+        return f"<Actor {self.name}>"
+class Movies(db.Model):
+    __tablename__="movies"
+    id=db.Column(db.Integer,primary_key=True)
+    movie_name=db.Column(db.String(50))
+    actors=db.relationship("Actors",secondary=actor_movie,back_populates="movies")
+    def __repr__(self):
+        return f"<Movie {self.movie_name}>"
 @app.shell_context_processor
 def make_shell_contect():
     return {
@@ -103,5 +124,8 @@ def make_shell_contect():
         "Passport":Passport,
         "Pizza":Pizza,
         "Topping":Topping,
-        "pizza_topping":pizza_topping
+        "pizza_topping":pizza_topping,
+        "Actors":Actors,
+        "Movies":Movies,
+        "actor_movie":actor_movie
     }
